@@ -27,7 +27,9 @@ var main = (function() {
         const near = 0.1;
         const far = 5;
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        camera.position.z = 2;
+        camera.position.z = 2; 
+        camera.position.y = 1;
+        camera.position.x = 0;
 
         const scene = new THREE.Scene();
 
@@ -36,13 +38,25 @@ var main = (function() {
         const boxDepth = 1;
         const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
         const cubes = [
-            makeInstance(geometry, 0x44aa88,  0),
-            makeInstance(geometry, 0x8844aa, -2),
+            makeInstance(geometry, 0x44aa88,  -2),
+            makeInstance(geometry, 0x8844aa, 0),
             makeInstance(geometry, 0xaa8844,  2),
-        ];
+        ];       
+
+        function makeInstance(geometry, color, x) {
+            const material = new THREE.MeshPhongMaterial({color});           
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);           
+            cube.position.x = x;        
+            return cube;
+        }
 
         renderer.render(scene, camera);
 
+        let bounceUp = true; //goes false when boxes go down
+        let turn = 0; //which cube's turn is it to go
+        let x0 = true; //go right
+        let x2 = true;
         function render(time) {
             time *= 0.001;  // convert time to seconds  
             
@@ -58,11 +72,54 @@ var main = (function() {
             camera.aspect = canvas.clientWidth / canvas.clientHeight;
             camera.updateProjectionMatrix();   
 
-            cubes.forEach((cube, ndx) => {
-                const speed = 1 + ndx * .1;
-                const rot = time * speed;
-                cube.rotation.x = rot;
-                cube.rotation.y = rot;
+            cubes.forEach((cube, i) => {
+                if(turn !== i) return;
+                let speed = .01;  
+
+                if(bounceUp && cube.position.y > 2) {
+                    bounceUp = false;
+                } else if(!bounceUp && cube.position.y < 0) {
+                    bounceUp = true;
+                    turn++;
+                    if(turn > 2) turn = 0;
+                }      
+                if(!bounceUp) {
+                    speed *= -1;
+                }    
+                cube.position.y += speed; 
+
+                switch(i) {
+                    case 2:
+                        cube.rotation.z += speed; 
+                        if(x0 && cube.position.x > 2) {
+                            x0 = false;
+                        } else if(!x0 && cube.position.x < 1) { 
+                            x0 = true;
+                        }
+                        if(x0) {
+                            cube.position.x += 0.001;
+                        } else {
+                            cube.position.x -= 0.001;
+                        }
+                    break;
+                    case 0:
+                        cube.rotation.x += speed;                        
+                        if(x2 && cube.position.x > -1) {
+                            x2 = false;
+                        } else if(!x2 && cube.position.x < -2) { 
+                            x2 = true;
+                        }
+                        if(x2) {
+                            cube.position.x += 0.001;
+                        } else {
+                            cube.position.x -= 0.001;
+                        }
+                    break;
+                    case 1:
+                        cube.rotation.y += speed;
+                    break;
+                    default: break;
+                }
             });          
             renderer.render(scene, camera);           
             requestAnimationFrame(render);
@@ -74,14 +131,6 @@ var main = (function() {
         const light = new THREE.DirectionalLight(color, intensity);
         light.position.set(-1, 2, 4);
         scene.add(light);
-
-        function makeInstance(geometry, color, x) {
-            const material = new THREE.MeshPhongMaterial({color});           
-            const cube = new THREE.Mesh(geometry, material);
-            scene.add(cube);           
-            cube.position.x = x;           
-            return cube;
-        }
     }
     
     function _initExtrudeHeart() {
