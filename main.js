@@ -10,8 +10,7 @@
 
 var main = (function() {
     var that = {}; //public methods and objects
-    var elem = {}; //store dom elems once on load for efficiency
-    var vars = {}; //variables available to all functions in main
+    var elem = {}; //dom elements
 
     that.init = function() {
         _initSpinningCubes();
@@ -134,7 +133,7 @@ var main = (function() {
     }
     
     function _initExtrudeHeart() {
-        const canvas = f.html.getElem('#d');
+        const canvas = elem.canvasD = f.html.getElem('#d');
         const renderer = new THREE.WebGLRenderer({canvas});
 
         const fov = 40;
@@ -194,7 +193,8 @@ var main = (function() {
                 camera.updateProjectionMatrix();
             }
 
-            heart.rotation.y = time;
+            let offsetTop = elem.canvasD.offsetTop - window.pageYOffset;
+            heart.rotation.y = offsetTop * 0.01;
 
             //to make responsive (so blocks don't stretch)
             const canvas = renderer.domElement;
