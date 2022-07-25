@@ -15,6 +15,7 @@ var main = (function() {
     that.init = function() {
         _initSpinningCubes();
         _initExtrudeHeart();
+        _customShape();
     }
 
     function _initSpinningCubes() {
@@ -154,6 +155,7 @@ var main = (function() {
         light.position.set(-1, 2, 4);
         scene.add(light);
 
+        //heart
         const shape = new THREE.Shape();
         const x = -2.5;
         const y = -5;
@@ -195,6 +197,81 @@ var main = (function() {
 
             let offsetTop = elem.canvasD.offsetTop - window.pageYOffset;
             heart.rotation.y = offsetTop * 0.01;
+
+            //to make responsive (so blocks don't stretch)
+            const canvas = renderer.domElement;
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();   
+        
+            renderer.render(scene, camera);           
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render); //req to browser
+    }
+
+    function _customShape() {
+        const canvas = f.html.getElem('#e');
+        const renderer = new THREE.WebGLRenderer({canvas});
+
+        const fov = 40;
+        const aspect = 2;  // the canvas default
+        const near = 0.1;
+        const far = 1000;
+        const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+        camera.position.z = 40;
+        camera.position.y = 10;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        
+        renderer.render(scene, camera);
+
+        const color = 0xFFFFFF;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        scene.add(light);
+
+        //puzzle piece
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.lineTo(10, 0);
+        shape.lineTo(10, 10);
+        shape.lineTo(7, 10);
+        shape.arc(-2,1.5, 2, -0.7, 3.9, false);
+        shape.lineTo(0, 10);
+        shape.lineTo(0, 7);
+        shape.arc(1.5,-2, 2.1, 2.4, 3.75, true);
+        shape.lineTo(0, 0);
+
+        const extrudeSettings = {
+            steps: 2,  // ui: steps
+            depth: 2.5,  // ui: depth
+            bevelEnabled: true,  // ui: bevelEnabled
+            bevelThickness: 0.2,  // ui: bevelThickness
+            bevelSize: 0.2,  // ui: bevelSize
+            bevelSegments: 1,  // ui: bevelSegments
+        };
+
+        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+        const material = new THREE.MeshPhongMaterial({color: 0x00ff00});           
+        const puzzle = new THREE.Mesh(geometry, material);
+        puzzle.position.x = 0;
+        puzzle.position.y = 0;
+        scene.add(puzzle); 
+
+        //animate
+        function render(time) {
+            time *= 0.001;  // convert time to seconds  
+            
+            //to change resolution if necessary (for smooth edges)
+            if(_resizeRendererToDisplaySize(renderer)) {
+                const canvas = renderer.domElement;
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+            }
+
+            puzzle.rotation.y = time;
 
             //to make responsive (so blocks don't stretch)
             const canvas = renderer.domElement;
