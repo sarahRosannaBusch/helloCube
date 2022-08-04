@@ -15,7 +15,7 @@ var main = (function() {
     that.init = function() {
         _initSpinningCubes();
         _initExtrudeHeart();
-        _customShape();
+        //_customShape();
         _solidPrimitives();
         _solarSystem();
         _2dPrimitives();
