@@ -17,6 +17,7 @@ var main = (function() {
         _initExtrudeHeart();
         _customShape();
         _solidPrimitives();
+        _solarSystem();
     }
 
     function _initSpinningCubes() {
@@ -410,8 +411,8 @@ var main = (function() {
 
         function createSphere(x, y) {
             const radius = 7;  
-            const widthSegments = 12;  
-            const heightSegments = 8;  
+            const widthSegments = 24;  
+            const heightSegments = 24;  
             const geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
             addSolidGeometry(x, y, geometry);
         }
@@ -486,6 +487,97 @@ var main = (function() {
         requestAnimationFrame(render); //req to browser
     }
 
+    function _solarSystem() {
+        const canvas = elem.canvasD = f.html.getElem('#g');
+        const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
+
+        const fov = 40;
+        const aspect = 2;  // the canvas default
+        const near = 0.1;
+        const far = 1000;
+        const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+        camera.position.set(20, 20, 20);
+        camera.up.set(0, 1, 0);
+        camera.lookAt(0, 0, 0);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        
+        renderer.render(scene, camera);
+
+        //point light emanates from center of the scene
+        const color = 0xFFFFFF;
+        const intensity = 3;
+        const light = new THREE.PointLight(color, intensity);
+        scene.add(light);
+
+        // an array of objects whose rotation to update
+        const objects = [];
+        
+        // use just one sphere for everything
+        const radius = 1;
+        const widthSegments = 26;
+        const heightSegments = 26;
+        const sphereGeometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
+
+        //create Solar System
+        const solarSystem = new THREE.Object3D(); //like a mesh w/out mat or geom, represens a local space
+        scene.add(solarSystem);
+        objects.push(solarSystem);
+        
+        //create Sun
+        const sunMaterial = new THREE.MeshPhongMaterial({emissive: 0xFFFF00}); //emissive = glowing object
+        const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial);
+        sunMesh.scale.set(5, 5, 5);  // make the sun large
+        solarSystem.add(sunMesh);
+        objects.push(sunMesh);
+
+        //create Earth orbit
+        const earthOrbit = new THREE.Object3D();
+        earthOrbit.position.x = 10;
+        solarSystem.add(earthOrbit);
+        objects.push(earthOrbit);
+
+        //create Earth
+        const earthMaterial = new THREE.MeshPhongMaterial({color: 0x2233FF, emissive: 0x112244});
+        const earthMesh = new THREE.Mesh(sphereGeometry, earthMaterial);
+        //earthMesh.position.x = 10; //in orbit instead
+        earthOrbit.add(earthMesh);
+        objects.push(earthMesh);
+
+        //create Moon orbit
+        const moonOrbit = new THREE.Object3D();
+        moonOrbit.position.x = 2;
+        earthOrbit.add(moonOrbit);
+        
+        //create Moon
+        const moonMaterial = new THREE.MeshPhongMaterial({color: 0x888888, emissive: 0x222222});
+        const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial);
+        moonMesh.scale.set(.5, .5, .5);
+        moonOrbit.add(moonMesh);
+        objects.push(moonMesh);
+
+        //animate
+        function render(time) {
+            time *= 0.001;  // convert time to seconds  
+            
+            //to change resolution if necessary (for smooth edges)
+            if(_resizeRendererToDisplaySize(renderer)) {
+                const canvas = renderer.domElement;
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+            }
+
+            objects.forEach((obj, i) => {
+                obj.rotation.y = time;
+            }); 
+        
+            renderer.render(scene, camera);           
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render); //req to browser
+    }
+
     //return true if the canvas resolution needs to change
     function _resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
@@ -496,7 +588,7 @@ var main = (function() {
           renderer.setSize(width, height, false);
         }
         return needResize;
-      }
+    }
 
     return that;
 }());
