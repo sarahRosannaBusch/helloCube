@@ -18,6 +18,7 @@ var main = (function() {
         _customShape();
         _solidPrimitives();
         _solarSystem();
+        _2dPrimitives();
     }
 
     function _initSpinningCubes() {
@@ -487,6 +488,134 @@ var main = (function() {
         requestAnimationFrame(render); //req to browser
     }
 
+    function _2dPrimitives() {
+        const canvas = f.html.getElem('#f2');
+        const renderer = new THREE.WebGLRenderer({canvas, antialias: true}); //antialias smooths lines
+
+        const fov = 40;
+        const aspect = 2;  // the canvas default
+        const near = 0.1;
+        const far = 1000;
+        const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+        camera.position.z = 120;
+        camera.position.y = 0;
+        camera.position.x = -10;
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        
+        renderer.render(scene, camera);
+
+        const color = 0xFFFFFF;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        scene.add(light);
+
+        const objects = [];
+        const spread = 15;
+ 
+        function addObject(x, y, obj) {
+          obj.position.x = x * spread;
+          obj.position.y = y * spread;
+         
+          scene.add(obj);
+          objects.push(obj);
+        }
+
+        function createMaterial() {
+            const material = new THREE.MeshPhongMaterial({
+              side: THREE.DoubleSide, //so 2d shapes render on both sides
+            });
+           
+            const hue = Math.random();
+            const saturation = 1;
+            const luminance = .5;
+            material.color.setHSL(hue, saturation, luminance);
+           
+            return material;
+        }
+
+        function addSolidGeometry(x, y, geometry) {
+            const mesh = new THREE.Mesh(geometry, createMaterial());
+            addObject(x, y, mesh);
+        }
+
+        function createCircle(x, y) {
+            const radius = 7;  // ui: radius
+            const segments = 24;  // ui: segments
+            const geometry = new THREE.CircleGeometry(radius, segments);
+            addSolidGeometry(x, y, geometry);
+        }
+
+        function createPacman(x, y) {
+            const radius = 7;  // ui: radius
+            const segments = 24;  // ui: segments
+            const thetaStart = Math.PI * 0.25;  // ui: thetaStart
+            const thetaLength = Math.PI * 1.5;  // ui: thetaLength
+            const geometry = new THREE.CircleGeometry(
+                radius, segments, thetaStart, thetaLength);
+            addSolidGeometry(x, y, geometry);
+        }
+
+        function createLathe(x, y) {
+            const points = [];
+            for (let i = 0; i < 10; ++i) {
+            points.push(new THREE.Vector2(Math.sin(i * 0.2) * 3 + 3, (i - 5) * .8));
+            }
+            const geometry = new THREE.LatheGeometry(points);
+            addSolidGeometry(x, y, geometry);
+        }
+
+        function createPlane(x, y) {
+            const width = 9;  // ui: width
+            const height = 9;  // ui: height
+            const geometry = new THREE.PlaneGeometry(width, height);
+            addSolidGeometry(x, y, geometry);
+        }
+
+        function createDisc(x, y) {
+            const innerRadius = 2;  // ui: innerRadius
+            const outerRadius = 7;  // ui: outerRadius
+            const thetaSegments = 18;  // ui: thetaSegments
+            const geometry = new THREE.RingGeometry(
+                innerRadius, outerRadius, thetaSegments);
+            addSolidGeometry(x, y, geometry);
+        }
+
+        createCircle(0, 0);
+        createPacman(0, 2);
+        createLathe(0, -2);
+        createPlane(-2, 0);
+        createDisc(2, 0);
+
+        //animate
+        function render(time) {
+            time *= 0.001;  // convert time to seconds  
+            
+            //to change resolution if necessary (for smooth edges)
+            if(_resizeRendererToDisplaySize(renderer)) {
+                const canvas = renderer.domElement;
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+            }
+
+            objects.forEach((obj, i) => {
+                obj.rotation.y = time;
+                obj.rotation.x = time;
+            });
+
+            //to make responsive (so blocks don't stretch)
+            const canvas = renderer.domElement;
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();   
+        
+            renderer.render(scene, camera);           
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render); //req to browser
+    }
+
     function _solarSystem() {
         const canvas = elem.canvasD = f.html.getElem('#g');
         const renderer = new THREE.WebGLRenderer({canvas, antialias: true});
@@ -496,7 +625,8 @@ var main = (function() {
         const near = 0.1;
         const far = 1000;
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        camera.position.set(0, 30, 260);
+        camera.position.set(0, 30, 240); //(up.set y to 1)
+        //camera.position.set(0, 150, 0); //top down view (up.set z to 1)
         camera.up.set(0, 1, 0);
         camera.lookAt(0, 0, 0);
 
@@ -531,11 +661,27 @@ var main = (function() {
         const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial);
         sunMesh.scale.set(sunScale, sunScale, sunScale);  //scale relative to Earth
         solarSystem.add(sunMesh);
-        objects.push(sunMesh);
+        objects.push(sunMesh);        
+
+        //create Mercury
+        const mercuryMaterial = new THREE.MeshPhongMaterial({color: 'orange', emissive: 'gold'});
+        const mercuryMesh = new THREE.Mesh(sphereGeometry, mercuryMaterial);
+        mercuryMesh.scale.set(.33, .33, .33);
+        mercuryMesh.position.z = -3.5 - sunScale; //in orbit instead
+        solarSystem.add(mercuryMesh);
+        objects.push(mercuryMesh);
+
+        //create Venus
+        const venusMaterial = new THREE.MeshPhongMaterial({color: 'green', emissive: 'forestgreen'});
+        const venusMesh = new THREE.Mesh(sphereGeometry, venusMaterial);
+        venusMesh.scale.set(.9, .9, .9);
+        venusMesh.position.x = 6.7 + sunScale; //in orbit instead
+        solarSystem.add(venusMesh);
+        objects.push(venusMesh);
 
         //create Earth orbit
         const earthOrbit = new THREE.Object3D();
-        earthOrbit.position.x = 9.3 + sunScale;
+        earthOrbit.position.x = -9.3 - sunScale;
         solarSystem.add(earthOrbit);
         objects.push(earthOrbit);
 
@@ -557,29 +703,11 @@ var main = (function() {
         moonOrbit.add(moonMesh);
         objects.push(moonMesh);
 
-        //create Mercury
-        const mercuryMaterial = new THREE.MeshPhongMaterial({color: 'orange', emissive: 'gold'});
-        const mercuryMesh = new THREE.Mesh(sphereGeometry, mercuryMaterial);
-        mercuryMesh.scale.set(.33, .33, .33);
-        mercuryMesh.position.x = -3.5 - sunScale; //in orbit instead
-        solarSystem.add(mercuryMesh);
-        objects.push(mercuryMesh);
-
-        //create Venus
-        const venusMaterial = new THREE.MeshPhongMaterial({color: 'green', emissive: 'forestgreen'});
-        const venusMesh = new THREE.Mesh(sphereGeometry, venusMaterial);
-        venusMesh.scale.set(.9, .9, .9);
-        venusMesh.position.x = -6.7 - sunScale; //in orbit instead
-        venusMesh.position.z = -6.7 - sunScale;
-        solarSystem.add(venusMesh);
-        objects.push(venusMesh);
-
         //create Mars
         const marsMaterial = new THREE.MeshPhongMaterial({color: 'red', emissive: 'red'});
         const marsMesh = new THREE.Mesh(sphereGeometry, marsMaterial);
         marsMesh.scale.set(.5, .5, .5);
-        marsMesh.position.x = 14.2 + sunScale; //in orbit instead
-        marsMesh.position.z = -14.2 - sunScale;
+        marsMesh.position.z = 14.2 + sunScale; //in orbit instead
         solarSystem.add(marsMesh);
         objects.push(marsMesh);
 
@@ -587,24 +715,44 @@ var main = (function() {
         const jupiterMaterial = new THREE.MeshPhongMaterial({color: 0x241234, emissive: 0x241234});
         const jupiterMesh = new THREE.Mesh(sphereGeometry, jupiterMaterial);
         jupiterMesh.scale.set(11, 11, 11);
-        jupiterMesh.position.x = 48.4 + sunScale; //in orbit instead
-        marsMesh.position.z = -48.4 - sunScale;
+        jupiterMesh.position.x = -48.4 - sunScale; //in orbit instead
         solarSystem.add(jupiterMesh);
         objects.push(jupiterMesh);
+
+        //create Saturn orbit
+        const saturnOrbit = new THREE.Object3D();
+        saturnOrbit.position.x = 88.9 + sunScale;
+        saturnOrbit.position.z = -88.9;
+        solarSystem.add(saturnOrbit);
+        objects.push(saturnOrbit);
 
         //create Saturn
         const saturnMaterial = new THREE.MeshPhongMaterial({color: 0x451234, emissive: 0x451234});
         const saturnMesh = new THREE.Mesh(sphereGeometry, saturnMaterial);
         saturnMesh.scale.set(9, 9, 9);
-        saturnMesh.position.z = 88.9 + sunScale;
-        solarSystem.add(saturnMesh);
-        objects.push(saturnMesh);
+        saturnOrbit.add(saturnMesh);
+
+        //create Saturn's ring
+        const innerRadius = 12;  // ui: innerRadius
+        const outerRadius = 17;  // ui: outerRadius
+        const thetaSegments = 28;  // ui: thetaSegments
+        const ringGeometry = new THREE.RingGeometry(innerRadius, outerRadius, thetaSegments);
+        const ringMaterial = new THREE.MeshPhongMaterial({
+            side: THREE.DoubleSide, //so 2d shapes render on both sides
+        });        
+        const hue = 0;
+        const saturation = 1;
+        const luminance = 1;
+        ringMaterial.color.setHSL(hue, saturation, luminance);
+        const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);   
+        ringMesh.rotation.x = 2; //tilt   
+        saturnOrbit.add(ringMesh);
 
         //create Uranus
         const uranusMaterial = new THREE.MeshPhongMaterial({color: 'dodgerblue', emissive: 'dodgerblue'});
         const uranusMesh = new THREE.Mesh(sphereGeometry, uranusMaterial);
         uranusMesh.scale.set(4, 4, 4);
-        uranusMesh.position.z = -179 - sunScale;
+        uranusMesh.position.x = 179 + sunScale;
         solarSystem.add(uranusMesh);
         objects.push(uranusMesh);
 
@@ -612,8 +760,7 @@ var main = (function() {
         const neptuneMaterial = new THREE.MeshPhongMaterial({color: 'cornflowerblue', emissive: 'cornflowerblue'});
         const neptuneMesh = new THREE.Mesh(sphereGeometry, neptuneMaterial);
         neptuneMesh.scale.set(3.9, 3.9, 3.9);
-        neptuneMesh.position.x = 288 + sunScale; //in orbit instead
-        neptuneMesh.position.z = -288 - sunScale;
+        neptuneMesh.position.x = -288 - sunScale; //in orbit instead
         solarSystem.add(neptuneMesh);
         objects.push(neptuneMesh);
 
