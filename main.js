@@ -496,7 +496,7 @@ var main = (function() {
         const near = 0.1;
         const far = 1000;
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        camera.position.set(0, 20, 325);
+        camera.position.set(0, 30, 260);
         camera.up.set(0, 1, 0);
         camera.lookAt(0, 0, 0);
 
@@ -588,6 +588,7 @@ var main = (function() {
         const jupiterMesh = new THREE.Mesh(sphereGeometry, jupiterMaterial);
         jupiterMesh.scale.set(11, 11, 11);
         jupiterMesh.position.x = 48.4 + sunScale; //in orbit instead
+        marsMesh.position.z = -48.4 - sunScale;
         solarSystem.add(jupiterMesh);
         objects.push(jupiterMesh);
 
