@@ -625,8 +625,8 @@ var main = (function() {
         const near = 0.1;
         const far = 1000;
         const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-        camera.position.set(0, 30, 240); //(up.set y to 1)
-        //camera.position.set(0, 150, 0); //top down view (up.set z to 1)
+        camera.position.set(0, 30, 200); //(up.set y to 1)
+        //camera.position.set(0, 350, 0); //top down view (up.set z to 1)
         camera.up.set(0, 1, 0);
         camera.lookAt(0, 0, 0);
 
@@ -657,7 +657,7 @@ var main = (function() {
         objects.push(solarSystem);
         
         //create Sun
-        const sunMaterial = new THREE.MeshPhongMaterial({emissive: 0xFFFF00}); //emissive = glowing object
+        const sunMaterial = new THREE.MeshPhongMaterial({emissive: 0xFFFF00, transparent: true, opacity: 0.9}); //emissive = glowing object
         const sunMesh = new THREE.Mesh(sphereGeometry, sunMaterial);
         sunMesh.scale.set(sunScale, sunScale, sunScale);  //scale relative to Earth
         solarSystem.add(sunMesh);
@@ -669,7 +669,6 @@ var main = (function() {
         mercuryMesh.scale.set(.33, .33, .33);
         mercuryMesh.position.z = -3.5 - sunScale; //in orbit instead
         solarSystem.add(mercuryMesh);
-        objects.push(mercuryMesh);
 
         //create Venus
         const venusMaterial = new THREE.MeshPhongMaterial({color: 'green', emissive: 'forestgreen'});
@@ -677,7 +676,6 @@ var main = (function() {
         venusMesh.scale.set(.9, .9, .9);
         venusMesh.position.x = 6.7 + sunScale; //in orbit instead
         solarSystem.add(venusMesh);
-        objects.push(venusMesh);
 
         //create Earth orbit
         const earthOrbit = new THREE.Object3D();
@@ -689,7 +687,6 @@ var main = (function() {
         const earthMaterial = new THREE.MeshPhongMaterial({color: 0x2233FF, emissive: 0x112244});
         const earthMesh = new THREE.Mesh(sphereGeometry, earthMaterial);
         earthOrbit.add(earthMesh);
-        objects.push(earthMesh);
 
         //create Moon orbit
         const moonOrbit = new THREE.Object3D();
@@ -701,7 +698,6 @@ var main = (function() {
         const moonMesh = new THREE.Mesh(sphereGeometry, moonMaterial);
         moonMesh.scale.set(.27, .27, .27);
         moonOrbit.add(moonMesh);
-        objects.push(moonMesh);
 
         //create Mars
         const marsMaterial = new THREE.MeshPhongMaterial({color: 'red', emissive: 'red'});
@@ -709,25 +705,22 @@ var main = (function() {
         marsMesh.scale.set(.5, .5, .5);
         marsMesh.position.z = 14.2 + sunScale; //in orbit instead
         solarSystem.add(marsMesh);
-        objects.push(marsMesh);
 
         //create Jupiter
-        const jupiterMaterial = new THREE.MeshPhongMaterial({color: 0x241234, emissive: 0x241234});
+        const jupiterMaterial = new THREE.MeshPhongMaterial({color: 0x241234, emissive: 0x241234, transparent: true, opacity: 0.8});
         const jupiterMesh = new THREE.Mesh(sphereGeometry, jupiterMaterial);
         jupiterMesh.scale.set(11, 11, 11);
         jupiterMesh.position.x = -48.4 - sunScale; //in orbit instead
         solarSystem.add(jupiterMesh);
-        objects.push(jupiterMesh);
 
         //create Saturn orbit
         const saturnOrbit = new THREE.Object3D();
         saturnOrbit.position.x = 88.9 + sunScale;
-        saturnOrbit.position.z = -88.9;
         solarSystem.add(saturnOrbit);
         objects.push(saturnOrbit);
 
         //create Saturn
-        const saturnMaterial = new THREE.MeshPhongMaterial({color: 0x451234, emissive: 0x451234});
+        const saturnMaterial = new THREE.MeshPhongMaterial({color: 0x451234, emissive: 0x451234, transparent: true, opacity: 0.8});
         const saturnMesh = new THREE.Mesh(sphereGeometry, saturnMaterial);
         saturnMesh.scale.set(9, 9, 9);
         saturnOrbit.add(saturnMesh);
@@ -752,17 +745,15 @@ var main = (function() {
         const uranusMaterial = new THREE.MeshPhongMaterial({color: 'dodgerblue', emissive: 'dodgerblue'});
         const uranusMesh = new THREE.Mesh(sphereGeometry, uranusMaterial);
         uranusMesh.scale.set(4, 4, 4);
-        uranusMesh.position.x = 179 + sunScale;
+        uranusMesh.position.z = 179 + sunScale;
         solarSystem.add(uranusMesh);
-        objects.push(uranusMesh);
 
         //create Neptune
         const neptuneMaterial = new THREE.MeshPhongMaterial({color: 'cornflowerblue', emissive: 'cornflowerblue'});
         const neptuneMesh = new THREE.Mesh(sphereGeometry, neptuneMaterial);
         neptuneMesh.scale.set(3.9, 3.9, 3.9);
-        neptuneMesh.position.x = -288 - sunScale; //in orbit instead
+        neptuneMesh.position.z = -288 - sunScale; //in orbit instead
         solarSystem.add(neptuneMesh);
-        objects.push(neptuneMesh);
 
         //animate
         function render(time) {
@@ -775,8 +766,12 @@ var main = (function() {
                 camera.updateProjectionMatrix();
             }
 
+            let speed = 1;
             objects.forEach((obj, i) => {
-                obj.rotation.y = time;
+                switch(i) {
+                    
+                }
+                obj.rotation.y = time * speed;
             }); 
         
             renderer.render(scene, camera);           
