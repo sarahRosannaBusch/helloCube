@@ -5,7 +5,12 @@
  * @brief       Hello Cube - three.js fundamentals
  * @author      Sarah Rosanna Busch
  * @version     0
- * @date        24 July 2022
+ * @date        8 Aug 2022
+ */
+
+/** DESCRIPTION
+ * These shapes and animations can be developed without the need of
+ * a server or including extra modules (only dependency is three.js or three.min.js)
  */
 
 var main = (function() {
@@ -19,6 +24,8 @@ var main = (function() {
         _solidPrimitives();
         _solarSystem();
         _2dPrimitives();
+
+        Textures.init();
     }
 
     function _initSpinningCubes() {
