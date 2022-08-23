@@ -175,6 +175,7 @@ var main = (function() {
         const extrudeSettings = {
             steps: 2,  // ui: steps
             depth: 1,  // ui: depth
+            curveSegments: 30, //higher = smoother
             bevelEnabled: true,  // ui: bevelEnabled
             bevelThickness: 1,  // ui: bevelThickness
             bevelSize: 1,  // ui: bevelSize
